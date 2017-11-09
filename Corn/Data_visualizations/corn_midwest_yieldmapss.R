@@ -9,7 +9,7 @@ corn <- read.table("/scratch/mentors/dbuckmas/corn_data.txt", header = TRUE, sep
 
 
 #Subset the data for just survey data
-midwest_corn <- subset(beans, beans$SOURCE_DESC == "SURVEY")
+midwest_corn <- subset(corn, corn$SOURCE_DESC == "SURVEY")
 
 # Now for states wanted, Corn belt = Indiana, Illinois, Iowa, Missouri, eastern Nebraska, and eastern Kansas
 mid_corn <- subset(midwest_corn, midwest_corn$STATE_NAME == "ILLINOIS" | midwest_corn$STATE_NAME == "INDIANA" 
@@ -31,9 +31,9 @@ mid_0100_corn <- subset(mid_0100_corn, mid_0100_corn$AGG_LEVEL_DESC == "COUNTY")
 mid_0100_corn$COUNTY_NAME <- factor(mid_0100_corn$COUNTY_NAME)
 
 # Now limit to crop yield
-mid_8190_cropyield <- subset(mid_8190_beans, mid_8190_beans$SHORT_DESC == "CORN, GRAIN - YIELD, MEASURED IN BU / ACRE")
-mid_9100_cropyield <- subset(mid_9100_beans, mid_9100_beans$SHORT_DESC == "CORN, GRAIN - YIELD, MEASURED IN BU / ACRE")
-mid_0100_cropyield <- subset(mid_0100_beans, mid_0100_beans$SHORT_DESC == "CORN, GRAIN - YIELD, MEASURED IN BU / ACRE")
+mid_8190_cropyield <- subset(mid_8190_corn, mid_8190_corn$SHORT_DESC == "CORN, GRAIN - YIELD, MEASURED IN BU / ACRE")
+mid_9100_cropyield <- subset(mid_9100_corn, mid_9100_corn$SHORT_DESC == "CORN, GRAIN - YIELD, MEASURED IN BU / ACRE")
+mid_0100_cropyield <- subset(mid_0100_corn, mid_0100_corn$SHORT_DESC == "CORN, GRAIN - YIELD, MEASURED IN BU / ACRE")
 
 # Create a new column in _cropyield with state,county in lowercase
 mid_8190_cropyield$statecounty <- data.frame(paste(mid_8190_cropyield$STATE_NAME,mid_8190_cropyield$COUNTY_NAME, sep = ","))
@@ -120,7 +120,13 @@ setkey(map.county,region,subregion)
 yieldmap <- data.table(yieldmap)
 setkey(yieldmap,state_names,county_names)
 map.df <- map.county[yieldmap]
-ggplot(map.df, aes(x=long, y=lat, group = group, fill=yield)) + scale_fill_gradient(low = 'light green',high = 'dark green',limits=c(0,200))+geom_polygon()+coord_map()+ ggtitle("Average Corn Yields 1981-1990")
+states = map_data('state')
+mdw_states = subset(states, region %in% c("ohio", "indiana", "illinois", "iowa", 
+                                          "minnesota", "missouri", "kansas", "nebraska",
+                                          "south dakota"))
+mdw_base = ggplot(data = mdw_states, mapping = aes(x = long, y=lat, group=group)) + coord_fixed(1.3) + geom_polygon(color = 'black', fill = NA, size = 0.2)
+mdw_base + geom_polygon(data = map.df, aes(fill = yield)) + geom_polygon(color = "black", fill = NA, size = 0.2) + ggtitle("Average Corn Yields 1981-1990") + scale_fill_gradient(low = 'light green',high = 'dark green',limits=c(0,200))
+
 
 #need these counties removed from midwest counties for 91-00
                     
@@ -164,7 +170,12 @@ setkey(map.county,region,subregion)
 yieldmap <- data.table(yieldmap)
 setkey(yieldmap,state_names,county_names)
 map.df <- map.county[yieldmap]
-ggplot(map.df, aes(x=long, y=lat, group = group, fill=yield)) + scale_fill_gradient(low = 'light green',high = 'dark green',limits=c(0,200))+geom_polygon()+coord_map()+ ggtitle("Average Corn Yields 1991-2000")
+states = map_data('state')
+mdw_states = subset(states, region %in% c("ohio", "indiana", "illinois", "iowa", 
+                                          "minnesota", "missouri", "kansas", "nebraska",
+                                          "south dakota"))
+mdw_base = ggplot(data = mdw_states, mapping = aes(x = long, y=lat, group=group)) + coord_fixed(1.3) + geom_polygon(color = 'black', fill = NA, size = 0.2)
+mdw_base + geom_polygon(data = map.df, aes(fill = yield)) + geom_polygon(color = "black", fill = NA, size = 0.2) + ggtitle("Average Corn Yields 1991-2000") + scale_fill_gradient(low = 'light green',high = 'dark green',limits=c(0,200))
 
 
 V4[!(V4 %in% V11)] 
@@ -212,7 +223,12 @@ setkey(map.county,region,subregion)
 yieldmap <- data.table(yieldmap)
 setkey(yieldmap,state_names,county_names)
 map.df <- map.county[yieldmap]
-ggplot(map.df, aes(x=long, y=lat, group = group, fill=yield)) + scale_fill_gradient(low = 'light green',high = 'dark green',limits=c(0,200))+geom_polygon()+coord_map()+ ggtitle("Average Corn Yields 2001-2010")
+states = map_data('state')
+mdw_states = subset(states, region %in% c("ohio", "indiana", "illinois", "iowa", 
+                                          "minnesota", "missouri", "kansas", "nebraska",
+                                          "south dakota"))
+mdw_base = ggplot(data = mdw_states, mapping = aes(x = long, y=lat, group=group)) + coord_fixed(1.3) + geom_polygon(color = 'black', fill = NA, size = 0.2)
+mdw_base + geom_polygon(data = map.df, aes(fill = yield)) + geom_polygon(color = "black", fill = NA, size = 0.2) + ggtitle("Average Corn Yields 2001-2010") + scale_fill_gradient(low = 'light green',high = 'dark green',limits=c(0,200))
 
 
 
