@@ -10,9 +10,12 @@ fips_codes <- read.csv("https://www2.census.gov/geo/docs/reference/codes/files/n
 # sdate     ###                        ###
 # ...
 # edate
-jsontoR <- function(FIPS,sdate,edate,elem) {
+jsontoR <- function(FIPS,sdate,edate,elem) { # dates must be in YEAR-MONTH-DAY format
   library(jsonlite)
   raw_json <- fromJSON(cat("http://data.rcc-acis.org/MultiStnData?county=",FIPS,"&sdate=",sdate,"&edate=",edate,"&elems=",elem))
-  initial_DF <- as.data.frame(raw_json)
-  unnested_DF <- unlist(initial_DF$data.data)
+  initial_DF <- as.data.frame(raw_json) # Converts JSON into tree data frame
+  # Need to make a data frame with the first column be the date range and the other columns are the data
+  # One column per sublist
+  # JSON data is divided into two sublists data.meta and data.data
+  # Each column has the name of an element in data.meta and contains the data for that element in data.data
 }
