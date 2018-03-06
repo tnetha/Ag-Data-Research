@@ -1,7 +1,7 @@
-
 #function for making a data frame of all the precipitation over the last 41 years for one county 
 #the years are the columns and the days are the rows
 #the headers are messy but we can fix that later if we need
+library(jsonlite)
 getdata <- function(year){
 full_url <- paste0("http://data.rcc-acis.org/MultiStnData?county=18005&sdate=", year, "-04-01&edate=", year,"-10-01&elems=pcpn")
  bart_pcpn_new <- fromJSON(full_url)
@@ -13,7 +13,7 @@ full_url <- paste0("http://data.rcc-acis.org/MultiStnData?county=18005&sdate=", 
 }
 rainfallDf <- getdata(1970) #you can't bind an empty data frame together so you have to just do 1970 at first 
 years = 1971:2010
-for (year in years){
+for (year in years){ # takes too long to run 
   yearDf <- getdata(year)
   rainfallDf <- rbind(rainfallDf, yearDf)
 }

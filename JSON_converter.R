@@ -29,4 +29,3 @@ jsontoR <- function(FIPS,sdate,edate,elem) { # dates must be in YEAR-MONTH-DAY f
 }
 df <- jsontoR(18139,"2010-01-01","2010-12-31","pcpn")
 df
-names(df)[2]
