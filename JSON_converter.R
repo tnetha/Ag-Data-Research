@@ -10,6 +10,7 @@ fips_codes <- read.csv("https://www2.census.gov/geo/docs/reference/codes/files/n
 # sdate     ###                        ###
 # ...
 # edate
+
 jsontoR <- function(FIPS,sdate,edate,elem) { # dates must be in YEAR-MONTH-DAY format
   library(jsonlite)
   raw_json <- fromJSON(paste("http://data.rcc-acis.org/MultiStnData?county=",FIPS,"&sdate=",sdate,"&edate=",edate,"&elems=",elem, sep = ""))

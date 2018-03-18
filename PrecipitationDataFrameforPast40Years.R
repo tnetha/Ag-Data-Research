@@ -20,3 +20,4 @@ for (year in years){ # takes too long to run
 head(rainfallDf$precipitation, 184)
 success <- as.data.frame(split(rainfallDf$precipitation, 1:184))
 dim(success)
+
