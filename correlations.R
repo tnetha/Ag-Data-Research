@@ -10,3 +10,6 @@ myvec <- paste('V',1:41,sep = '')
 tsuccess[myvec] <- sapply(tsuccess[myvec],as.character)
 tsuccess[myvec] <- sapply(tsuccess[myvec],as.numeric)
 median(tsuccess$V1[tsuccess$V1 > 0], na.rm=T)
+
+# get yields for Rush County
+
