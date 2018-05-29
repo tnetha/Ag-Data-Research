@@ -32,8 +32,11 @@ myfunc <- function(dates) {
   xx <- 1
   myvar <- 0
   while( xx <= length(dates) / 7 ) {
-    if (as.Date(dates[nn+6]) - as.Date(dates[nn]) == 6) {
-      myvar[xx] <- as.character(dates[nn]) 
+    if (is.na(dates[nn+6])==T) {
+      break
+    }
+    if (dates[nn+6] - dates[nn] == 6) {
+      myvar[xx] <- as.numeric(as.character(dates[nn])) 
       nn <- nn + 6
       xx <- xx + 1 
     }
@@ -45,4 +48,5 @@ myfunc <- function(dates) {
 }
 myfunc(summer_pcpn$date)
 
-
+length(myfunc(1:184))
+myfunc(seq(from=1,to=184,by=2))
