@@ -48,6 +48,9 @@ mid_8190_avgyield <- tapply(as.numeric(gsub(",",".", mid_8190_cropyield$VALUE)),
 mid_9100_avgyield <- tapply(as.numeric(gsub(",",".", mid_9100_cropyield$VALUE)), mid_9100_cropyield$statecounty, mean)
 mid_0100_avgyield <- tapply(as.numeric(gsub(",",".", mid_0100_cropyield$VALUE)), mid_0100_cropyield$statecounty, mean)
 
+summary(mid_8190_avgyield)
+summary(mid_9100_avgyield)
+summary(mid_0100_avgyield)
 # List of counties for corn belt, Indiana, Illinois, Iowa, Missouri, eastern Nebraska, and eastern Kansas
 map.county <- map_data('county')
 counties <- unique(map.county[,5:6])
@@ -134,6 +137,11 @@ V3[!(V3 %in% V11)]
 V11[!(V11 %in% V3)] 
 V11 <- paste(midwest_counties$region,midwest_counties$subregion,sep = ",")
 
+map.county <- map_data('county')
+counties <- unique(map.county[,5:6])
+midwest_counties <- counties[counties$region == "indiana" | counties$region == "illinois" | counties$region == "iowa" | counties$region == "missouri" | counties$region == "kansas" | counties$region == "nebraska" | counties$region == "south dakota" | counties$region == "minnesota" | counties$region == "ohio",]
+midwest_counties <- midwest_counties[order(midwest_counties$region),]
+
 mid_9100_avgyield <- data.frame(names(mid_9100_avgyield), mid_9100_avgyield)
 mid_9100_avgyield <- mid_9100_avgyield[mid_9100_avgyield$names.mid_9100_avgyield. != "south dakota,oglala lakota",]
 
@@ -181,6 +189,11 @@ mdw_base + geom_polygon(data = map.df, aes(fill = yield)) + geom_polygon(color =
 V4[!(V4 %in% V11)] 
 V11[!(V11 %in% V4)] 
 V11 <- paste(midwest_counties$region,midwest_counties$subregion,sep = ",")
+
+map.county <- map_data('county')
+counties <- unique(map.county[,5:6])
+midwest_counties <- counties[counties$region == "indiana" | counties$region == "illinois" | counties$region == "iowa" | counties$region == "missouri" | counties$region == "kansas" | counties$region == "nebraska" | counties$region == "south dakota" | counties$region == "minnesota" | counties$region == "ohio",]
+midwest_counties <- midwest_counties[order(midwest_counties$region),]
 
 mid_0100_avgyield <- data.frame(names(mid_0100_avgyield), mid_0100_avgyield)
 mid_0100_avgyield <- mid_0100_avgyield[mid_0100_avgyield$names.mid_0100_avgyield. != "south dakota,oglala lakota",]
