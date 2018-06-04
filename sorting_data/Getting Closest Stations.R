@@ -106,7 +106,7 @@ midwest_counties$state = sapply(midwest_counties$V1, stateName, USE.NAMES = F)
 
 midwest_counties$stateCounty = paste(midwest_counties$state, ",", midwest_counties$V4)
 
-newDF = data.frame(centroids_DF$midwestCountyNames, centroids_DF$avgLats, centroids_DF$avgLons, paste(midwest_counties$V2,midwest_counties$V3, sep = ""))
+newDF = data.frame(centroids_DF$midwestCountyNames, as.numeric(as.character(centroids_DF$avgLats)), as.numeric(as.character(centroids_DF$avgLons)), paste(midwest_counties$V2,midwest_counties$V3, sep = ""))
 names(newDF) = c("midwestCountyNames", "avgLat", "avgLon", "FIPScode")
 fips_code <- as.numeric(fips_code)
 class(fips_code)

@@ -2,7 +2,6 @@ install.packages('tidyverse')
 library(tidyverse)
 counties <- read.table('https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt',header = F, sep = ',', 
                        fill = T, stringsAsFactors = F, quote = '')
-nrow(counties[counties$V1 == 'IN',])
 
 midwest_counties <- counties[counties$V1 == 'OH' | counties$V1 == 'IN' | counties$V1 == 'IL'
                              | counties$V1 == 'IA' | counties$V1 == 'MO' | counties$V1 == 'KS' |
