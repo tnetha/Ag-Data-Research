@@ -5,6 +5,7 @@ View(test)
 test$data$meta$ll[[1]]
 
 get_loc_df <- function(json_file) {
+  library(jsonlite)
   json_list <- fromJSON(json_file)
   loc_list <- json_list$data$meta$ll
   station_lat <- 0
@@ -20,9 +21,24 @@ library(stringr)
 County_remove <- function(x) str_replace(x, ' County', '')
 midwest_counties$V4 <- sapply(midwest_counties$V4, County_remove, USE.NAMES = F)
 
-
-find_closest_station <- function(json_file) {
-  loc_df <- get_loc_df(json_file)
-  
+euc_dist <- function(vec1,vec2) {
+  dist <- sqrt(sum((vec1-vec2)^2))
+  dist
 }
 
+find_closest_station <- function(fips) {
+  library(plyr)
+  loc_df <- get_loc_df(paste('/scratch/mentors/dbuckmas/json_files/',fips,'.json',sep = ''))
+  county_center <- data.frame(Lon=newDF$avgLon[newDF$FIPScode == fips], Lat=newDF$avgLat[newDF$FIPScode == fips])
+  vec <- 0
+  for (i in 1:nrow(loc_df)) {
+    vec[i] <- euc_dist(loc_df[i,],county_center)
+  }
+  which.min(vec)
+  #distances <- laply(loc_df,euc_dist,county_center)
+  #print(distances)
+  #print(loc_df)
+  #print(county_center)
+}
+find_closest_station(46137)
+class(newDF$avgLat)
