@@ -1,6 +1,8 @@
+library(tidyverse)
 library(ggplot2)
 library(data.table)
 library(maps)
+library(stringr)
 
 # get counties
 counties = map_data('county')
@@ -54,5 +56,58 @@ centroids = t(centroids)
 centroids_DF <- as.data.frame(centroids)
 centroids_DF <- separate(centroids_DF,2,c('state', 'county'),sep = '\ ,\ ',remove = F)
 
+# pulling fips codes
+counties1 <- read.table('https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt',header = F, sep = ',', 
+                       fill = T, stringsAsFactors = F, quote = '')
+nrow(counties1[counties1$V1 == 'IN',])
 
+midwest_counties <- counties1[counties1$V1 == 'OH' | counties1$V1 == 'IN' | counties1$V1 == 'IL'
+                             | counties1$V1 == 'IA' | counties1$V1 == 'MO' | counties1$V1 == 'KS' |
+                               counties1$V1 == 'NE' | counties1$V1 == 'SD' | counties1$V1 == 'MN',]
 
+midwest_counties$V2 <- sprintf('%02d',midwest_counties$V2)
+midwest_counties$V3 <- sprintf('%03d',midwest_counties$V3)
+fips_code <- paste(midwest_counties$V2,midwest_counties$V3,sep = '')
+
+countyNames = midwest_counties$V4
+countyNames = sapply(countyNames, tolower)
+
+County_remove <- function(x) str_replace(x, ' County', '')
+midwest_counties$V4 <- sapply(midwest_counties$V4, County_remove, USE.NAMES = F)
+midwest_counties$V4 = sapply(midwest_counties$V4, tolower)
+midwest_counties$state = NA 
+
+stateName = function(abr){
+    if (abr == "IL") {
+      midwest_counties$state[midwest_counties$V1 == "IL"] = "illinois"
+    } else if (abr == "IN") {
+      midwest_counties$state[midwest_counties$V1 == "IN"] = "indiana"
+    } else if (abr == "IA") {
+      midwest_counties$state[midwest_counties$V1 == "IA"] = "iowa"
+    } else if (abr == "KS") {
+      midwest_counties$state[midwest_counties$V1 == "KS"] = "kansas"
+    } else if (abr == "MN") {
+      midwest_counties$state[midwest_counties$V1 == "MN"] = "minnesota"
+    } else if (abr == "MO") {
+      midwest_counties$state[midwest_counties$V1 == "MO"] = "missouri"
+    } else if (abr == "NE") {
+      midwest_counties$state[midwest_counties$V1 == "NE"] = "nebraska"
+    } else if (abr == "OH") {
+      midwest_counties$state[midwest_counties$V1 == "OH"] = "ohio"
+    } else if (abr == "SD") {
+      midwest_counties$state[midwest_counties$V1 == "SD"] = "south dakota"
+    }
+}
+
+midwest_counties$state = sapply(midwest_counties$V1, stateName, USE.NAMES = F)
+
+midwest_counties$stateCounty = paste(midwest_counties$state, ",", midwest_counties$V4)
+
+newDF = data.frame(centroids_DF$midwestCountyNames, centroids_DF$avgLats, centroids_DF$avgLons, paste(midwest_counties$V2,midwest_counties$V3, sep = ""))
+names(newDF) = c("midwestCountyNames", "avgLat", "avgLon", "FIPScode")
+fips_code <- as.numeric(fips_code)
+class(fips_code)
+fips_code
+
+#command <- function(x) system(paste('curl \'http://data.rcc-acis.org/MultiStnData?county=',x,'&sdate=1970-01-01&edate=2015-12-31&elems=pcpn&meta=ll\' > /scratch/mentors/dbuckmas/json_files/', x,'.json', sep = ''))
+#sapply(fips_code, command)
