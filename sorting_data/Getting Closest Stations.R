@@ -61,14 +61,17 @@ counties1 <- read.table('https://www2.census.gov/geo/docs/reference/codes/files/
                        fill = T, stringsAsFactors = F, quote = '')
 nrow(counties1[counties1$V1 == 'IN',])
 
+# pull out just the midwest ones
 midwest_counties <- counties1[counties1$V1 == 'OH' | counties1$V1 == 'IN' | counties1$V1 == 'IL'
                              | counties1$V1 == 'IA' | counties1$V1 == 'MO' | counties1$V1 == 'KS' |
                                counties1$V1 == 'NE' | counties1$V1 == 'SD' | counties1$V1 == 'MN',]
 
+# keep the 0s that R wants to delete
 midwest_counties$V2 <- sprintf('%02d',midwest_counties$V2)
 midwest_counties$V3 <- sprintf('%03d',midwest_counties$V3)
 fips_code <- paste(midwest_counties$V2,midwest_counties$V3,sep = '')
 
+# 
 countyNames = midwest_counties$V4
 countyNames = sapply(countyNames, tolower)
 
@@ -111,3 +114,9 @@ fips_code
 
 #command <- function(x) system(paste('curl \'http://data.rcc-acis.org/MultiStnData?county=',x,'&sdate=1970-01-01&edate=2015-12-31&elems=pcpn&meta=ll\' > /scratch/mentors/dbuckmas/json_files/', x,'.json', sep = ''))
 #sapply(fips_code, command)
+
+euc_dist = function (vec1, vec2) {
+  dist = sqrt(sum((vec1-vec2)^2))
+  dist
+}
+
