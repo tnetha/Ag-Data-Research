@@ -51,6 +51,8 @@ centroids = t(centroids)
 # the hard part here is figuring out how to cross reference the huge database of weather station data with county names
 # before finals i think i was trying to use fips codes, i believe the weather data has fips codes somewhere in it but don't count
 # on that being true
+centroids_DF <- as.data.frame(centroids)
+centroids_DF <- separate(centroids_DF,2,c('state', 'county'),sep = '\ ,\ ',remove = F)
 
 
 
