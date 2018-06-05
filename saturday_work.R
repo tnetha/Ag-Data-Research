@@ -52,6 +52,7 @@ find_closest_station <- function(fips) {
   #print(loc_df)
   #print(county_center)
 }
+<<<<<<< HEAD
 
 # testing using fips 46137
 find_closest_station(46137)
@@ -67,3 +68,13 @@ getPrecipClosestStn = function(fips) {
   precipData
 }
 getPrecipClosestStn(39035)
+=======
+index_46137 <- find_closest_station(46137)
+
+test <- fromJSON('/scratch/mentors/dbuckmas/json_files/46137.json')
+View(test)
+class(newDF$avgLat)
+test$data$data[3]
+
+test_DF <- data.frame(date = seq(as.Date('1970-01-01'),as.Date('2015-12-31'),by='days'), pcpn = test$data$data[3])
+>>>>>>> 03525cd69b550b4a01775f67d7c22dd9e2342fc7

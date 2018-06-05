@@ -56,10 +56,9 @@ centroids = t(centroids)
 centroids_DF <- as.data.frame(centroids)
 centroids_DF <- separate(centroids_DF,2,c('state', 'county'),sep = '\ ,\ ',remove = F)
 
-# pulling fips codes
+# pulling fips codes from the Census Bureau
 counties1 <- read.table('https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt',header = F, sep = ',', 
                        fill = T, stringsAsFactors = F, quote = '')
-nrow(counties1[counties1$V1 == 'IN',])
 
 # pull out just the midwest ones
 midwest_counties <- counties1[counties1$V1 == 'OH' | counties1$V1 == 'IN' | counties1$V1 == 'IL'
@@ -71,13 +70,12 @@ midwest_counties$V2 <- sprintf('%02d',midwest_counties$V2)
 midwest_counties$V3 <- sprintf('%03d',midwest_counties$V3)
 fips_code <- paste(midwest_counties$V2,midwest_counties$V3,sep = '')
 
-# 
-countyNames = midwest_counties$V4
-countyNames = sapply(countyNames, tolower)
-
+# remove the word county, make it lowercase to match to other data frames
 County_remove <- function(x) str_replace(x, ' County', '')
 midwest_counties$V4 <- sapply(midwest_counties$V4, County_remove, USE.NAMES = F)
 midwest_counties$V4 = sapply(midwest_counties$V4, tolower)
+
+# add a state column
 midwest_counties$state = NA 
 
 stateName = function(abr){
@@ -101,22 +99,21 @@ stateName = function(abr){
       midwest_counties$state[midwest_counties$V1 == "SD"] = "south dakota"
     }
 }
-
 midwest_counties$state = sapply(midwest_counties$V1, stateName, USE.NAMES = F)
 
+# create a column of state, county
 midwest_counties$stateCounty = paste(midwest_counties$state, ",", midwest_counties$V4)
 
+# combining things from both data frames
 newDF = data.frame(centroids_DF$midwestCountyNames, as.numeric(as.character(centroids_DF$avgLats)), as.numeric(as.character(centroids_DF$avgLons)), paste(midwest_counties$V2,midwest_counties$V3, sep = ""))
 names(newDF) = c("midwestCountyNames", "avgLat", "avgLon", "FIPScode")
 fips_code <- as.numeric(fips_code)
 class(fips_code)
 fips_code
 
+# newDF contains "state,county", center of each county, and its fips code
+
+
 #command <- function(x) system(paste('curl \'http://data.rcc-acis.org/MultiStnData?county=',x,'&sdate=1970-01-01&edate=2015-12-31&elems=pcpn&meta=ll\' > /scratch/mentors/dbuckmas/json_files/', x,'.json', sep = ''))
 #sapply(fips_code, command)
-
-euc_dist = function (vec1, vec2) {
-  dist = sqrt(sum((vec1-vec2)^2))
-  dist
-}
 
