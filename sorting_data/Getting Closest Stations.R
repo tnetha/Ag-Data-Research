@@ -3,6 +3,9 @@ library(ggplot2)
 library(data.table)
 library(maps)
 library(stringr)
+# code used to pull json data down, DO NOT RERUN
+#command <- function(x) system(paste('curl \'http://data.rcc-acis.org/MultiStnData?county=',x,'&sdate=1970-01-01&edate=2015-12-31&elems=pcpn&meta=ll\' > /scratch/mentors/dbuckmas/json_files/', x,'.json', sep = ''))
+#sapply(fips_code, command)
 
 # get counties
 counties = map_data('county')
@@ -69,6 +72,8 @@ midwest_counties <- counties1[counties1$V1 == 'OH' | counties1$V1 == 'IN' | coun
 midwest_counties$V2 <- sprintf('%02d',midwest_counties$V2)
 midwest_counties$V3 <- sprintf('%03d',midwest_counties$V3)
 fips_code <- paste(midwest_counties$V2,midwest_counties$V3,sep = '')
+fips_code = as.numeric(as.character(fips_code))
+class(fips_code$fips_code)
 
 # remove the word county, make it lowercase to match to other data frames
 County_remove <- function(x) str_replace(x, ' County', '')
@@ -112,8 +117,4 @@ class(fips_code)
 fips_code
 
 # newDF contains "state,county", center of each county, and its fips code
-
-
-#command <- function(x) system(paste('curl \'http://data.rcc-acis.org/MultiStnData?county=',x,'&sdate=1970-01-01&edate=2015-12-31&elems=pcpn&meta=ll\' > /scratch/mentors/dbuckmas/json_files/', x,'.json', sep = ''))
-#sapply(fips_code, command)
 
