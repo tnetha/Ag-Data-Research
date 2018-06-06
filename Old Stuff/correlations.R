@@ -66,6 +66,6 @@ pic_df <- data.frame(x=rep(df$year,each=2),y=as.vector(rbind(df$corn_yields,df$s
                      ,Type=as.vector(rbind(rep('Corn Yields BU/AC',41),rep('Summer Precipitation Total (in)',41))))
                    #  ,as.vector(rbind(rep('Corn Yields BU/AC',41),rep('Summer Precipitation Total'),41)))
 
-ggplot(data = pic_df) + geom_line(aes(x=x,y=y,color=Type)) + ylab('') + xlab('Year') + ggtitle('Comparing Corn Yields and Annual Precipitation in Rush County, IN')
+ggplot(data = pic_df) + geom_line(aes(x=x,y=y,color=Type)) + ylab('Precipitation (in) and Yields (BU/AC)') + xlab('Year') + ggtitle('Rush County Corn Yields and Summer Precipitation from 1970-2010')
 ggplot(data=data.frame(x=yield_cor)) + geom_histogram(aes(x=x),bins = 10) + xlab('Correlation') + ggtitle('Histogram of Correlations between Corn Yields and Week Long Droughts')
 yield_cor <- df_cor[2,6:178]
