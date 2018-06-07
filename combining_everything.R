@@ -11,6 +11,21 @@ groups = unique(midwestCounties$group)
 statecounty = unique(midwestCounties$statecounty)
 centroids = data.frame(groups, statecounty)
 
+# pulling fips codes from the Census Bureau
+counties1 <- read.table('https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt',header = F, sep = ',', 
+                        fill = T, stringsAsFactors = F, quote = '')
+
+# pull out just the midwest ones
+midwest_counties <- counties1[counties1$V1 == 'OH' | counties1$V1 == 'IN' | counties1$V1 == 'IL'
+                              | counties1$V1 == 'IA' | counties1$V1 == 'MO' | counties1$V1 == 'KS' |
+                                counties1$V1 == 'NE' | counties1$V1 == 'SD' | counties1$V1 == 'MN',]
+
+# keep the 0s that R wants to delete
+midwest_counties$V2 <- sprintf('%02d',midwest_counties$V2)
+midwest_counties$V3 <- sprintf('%03d',midwest_counties$V3)
+fips_code <- paste(midwest_counties$V2,midwest_counties$V3,sep = '')
+fips_code = as.numeric(as.character(fips_code))
+
 getCenter = function(Group) {
   lat_lons = subset(midwestCounties, midwestCounties$group == Group)
   maxLon = max(lat_lons$long)
@@ -20,6 +35,32 @@ getCenter = function(Group) {
   avgLon = (maxLon + minLon) / 2
   avgLat = (maxLat + minLat) / 2
   latLon = c(avgLon, avgLat)
+}
+
+get_loc_df <- function(json_file) {
+  library(jsonlite)
+  json_list <- fromJSON(json_file)
+  loc_list <- json_list$data$meta$ll
+  station_lat <- 0
+  station_lon <- 0
+  for (i in 1:length(loc_list)) {
+    if (is.null(loc_list[[i]][1])) {
+      station_lon[i] = NA
+    } else {
+      station_lon[i] = loc_list[[i]][1]
+    }
+    if (is.null(loc_list[[i]][2])) {
+      station_lat[i] = NA
+    } else {
+      station_lat[i] = loc_list[[i]][2]
+    }
+  }
+  loc_df <- data.frame(lon = station_lon,lat = station_lat)
+  loc_df
+}
+
+euc_dist <- function(vec1,vec2) {
+  dist <- sqrt(rowSums((vec1-vec2)^2))
 }
 
 getYields = function(file_name) {
@@ -56,8 +97,7 @@ find_closest_station <- function(fips) {
   #print(loc_df)
   #print(county_center)
 }
-loc_df <- get_loc_df(paste('/scratch/mentors/dbuckmas/json_files/',fips_code[1],'.json',sep = ''))
-fips_code[1]
+
 getPrecipClosestStn = function(fips) {
   loc_df <- get_loc_df(paste('/scratch/mentors/dbuckmas/json_files/',fips,'.json',sep = ''))
   jsonData = as.data.frame(fromJSON(paste('/scratch/mentors/dbuckmas/json_files/',fips,'.json',sep = ''))) # precip data for all stations
@@ -72,7 +112,6 @@ wheat = getYields("/scratch/mentors/dbuckmas/head.txt")
 test = sapply(centroids$group, getCenter)
 test = as.data.frame(t(test))
 names(test) = c('long', 'lat')
-temp = sapply(fips_code, getPrecipClosestStn)
 centroids = cbind(centroids, test)
 
 centroids = merge(centroids, wheat, by = 'statecounty')
@@ -80,6 +119,4 @@ centroids$FIPScode = paste(centroids$STATE_FIPS_CODE, centroids$COUNTY_CODE, sep
 allData = centroids[, c(11,1,3,4,9,10)]
 allData = allData[-c(1100:1124),]
 fips_code = fips_code[-44]
-
-fips_code[44]
-t = fromJSON('/scratch/mentors/dbuckmas/json_files/',17087,'.json',sep = '')
+write.csv(sapply(fips_code, getPrecipClosestStn), '/scratch/mentors/dbuckmas/closest.csv')
