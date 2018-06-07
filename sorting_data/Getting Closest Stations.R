@@ -113,7 +113,6 @@ fips_code
 
 # newDF contains "state,county", center of each county, and its fips code
 
-
 #command <- function(x) system(paste('curl \'http://data.rcc-acis.org/MultiStnData?county=',x,'&sdate=1970-01-01&edate=2015-12-31&elems=pcpn&meta=ll\' > /scratch/mentors/dbuckmas/json_files/', x,'.json', sep = ''))
 #sapply(fips_code, command)
 
