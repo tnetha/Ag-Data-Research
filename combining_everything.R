@@ -119,4 +119,5 @@ centroids$FIPScode = paste(centroids$STATE_FIPS_CODE, centroids$COUNTY_CODE, sep
 allData = centroids[, c(11,1,3,4,9,10)]
 allData = allData[-c(1100:1124),]
 fips_code = fips_code[-44]
-write.csv(sapply(fips_code, getPrecipClosestStn), '/scratch/mentors/dbuckmas/closest.csv')
+closest_stations <- sapply(fips_code, getPrecipClosestStn)
+write.csv(closest_stations, '/scratch/mentors/dbuckmas/closest.csv')
