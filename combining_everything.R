@@ -123,10 +123,10 @@ find_closest_station <- function(fips) {
 getPrecipClosestStn = function(fips) {
   loc_df <- get_loc_df(paste('/scratch/mentors/dbuckmas/json_files/',fips,'.json',sep = ''))
   jsonData = as.data.frame(fromJSON(paste('/scratch/mentors/dbuckmas/json_files/',fips,'.json',sep = ''))) # precip data for all stations
-  loc_df[find_closest_station(fips),]
-  # dates = seq(as.Date('1970-01-01'), as.Date('2015-12-31'), by = 1)
-  # precipData = data.frame(date = dates, precip = pcpn)
-  # precipData
+  pcpn = jsonData$data.data[find_closest_station(fips)]
+  dates = seq(as.Date('1970-01-01'), as.Date('2015-12-31'), by = 1)
+  precipData = data.frame(date = dates, precip = pcpn)
+  precipData
 }
 
 # get the yields, etc for wheat
