@@ -2,7 +2,7 @@ library(jsonlite)
 library(stringr)
 library(plyr)
 library(mefa)
-
+library(ggmap)
 # need to run Getting Closest Stations.R first before running this
 
 # function get the lat/lons of stations in a county with a specific fips code aka json file
@@ -28,7 +28,12 @@ get_loc_df <- function(json_file) {
   loc_df
 }
 
+ll = get_loc_df(paste('/scratch/mentors/dbuckmas/json_files/',18157,'.json',sep = ''))
 
+cle_center = as.numeric(geocode("Purdue University"))
+cleMap = ggmap(get_googlemap(center = cle_center, zoom = 13, maptype = 'roadmap'))
+cleMap = cleMap + geom_point(data = ll, color = 'red')
+cleMap
 # }
 
 # remove the word county from the FIPS code data we downloaded from the Census Bureau (i think)
