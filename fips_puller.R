@@ -16,4 +16,3 @@ pull_state_codes <- function(state_abb) {
   fips_code
 }
 
-length(pull_state_codes(c('IN','OH')))
