@@ -38,7 +38,7 @@ midwest_counties$V3 <- sprintf('%03d',midwest_counties$V3)
 # combine the state and county fips codes
 fips_code <- paste(midwest_counties$V2,midwest_counties$V3,sep = '')
 fips_code = as.numeric(as.character(fips_code))
-
+fips_code <- fips_code[!(fips_code == 17087 | fips_code == 46113)]
 
 finding_averages <- function(fips) {
   json_init <- fromJSON(paste('/scratch/mentors/dbuckmas/json_files/',fips,'.json',sep = ''))
@@ -52,7 +52,7 @@ finding_averages <- function(fips) {
   write.csv(json_mean, paste('/scratch/mentors/dbuckmas/pcpn_means/',fips,'.csv',sep = ''))
 }
 
-fips_code <- fips_code[!(fips_code == 17087 | fips_code == 46113)]
+
 new_fips <- fips_code[-(1:494)]
 
 sapply(new_fips, finding_averages)
