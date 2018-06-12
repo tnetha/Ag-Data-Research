@@ -41,18 +41,18 @@ fips_code = as.numeric(as.character(fips_code))
 
 
 finding_averages <- function(fips) {
+  library(jsonlite)
   json_init <- fromJSON(paste('/scratch/mentors/dbuckmas/json_files/',fips,'.json',sep = ''))
   json_mat <- matrix(NA,nrow = 16801,ncol = length(json_init$data$data))
   for (i in 1:length(json_init$data$data)) {
     json_mat[,i] <- as.numeric(as.character(json_init$data$data[[i]])) 
   }
   json_mat[json_mat == 'M'] <- NA
-  json_mat[json_mat == 'T'] <- NA
+  json_mat[json_mat == 'T'] <- .005
   json_mean <- rowMeans(json_mat, na.rm = T)
   write.csv(json_mean, paste('/scratch/mentors/dbuckmas/pcpn_means/',fips,'.csv',sep = ''))
 }
 
-fips_code <- fips_code[!(fips_code == 17087 | fips_code == 46113)]
-new_fips <- fips_code[-(1:494)]
+fips_code <- fips_code[!(fips_code == 17087 | fips_code == 46113 | fips_code == 29019)]
 
-sapply(new_fips, finding_averages)
+sapply(fips_code, finding_averages)
