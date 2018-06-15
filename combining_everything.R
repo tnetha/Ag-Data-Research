@@ -152,6 +152,4 @@ allData = centroids[, c(11,1,3,4,9,10)]
 # take out one county in illinois because it was being dumb and had no weather stations
 allData = allData[-c(1100:1124),]
 fips_code = fips_code[-44]
-closest_stations <- sapply(fips_code, getPrecipClosestStn)
-write.csv(closest_stations, '/scratch/mentors/dbuckmas/closest.csv')
 
