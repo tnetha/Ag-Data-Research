@@ -1,4 +1,5 @@
-
+install.packages('ggmap')
+library(ggmap)
 get_loc_df <- function(fips) {
   library(jsonlite)
   json_file = paste('/scratch/mentors/dbuckmas/json_files/',fips,'.json',sep = '')
@@ -39,3 +40,27 @@ fips_code <- fips_code[!(fips_code == 17087 | fips_code == 46113 | fips_code == 
 
 getStations = sapply(fips_code, get_loc_df, simplify = F)
 
+getStations[[1]]
+
+getStations = do.call(rbind, getStations)
+
+midwest_center = as.numeric(geocode("Minneapolis, MN"))
+cleMap = ggmap(get_googlemap(center = midwest_center, zoom = 6, maptype = 'roadmap'))
+cleMap = cleMap + geom_point(data = getStations[5183:6075,], size = 1, mapping = aes(x = lon, y = lat, color = lat))
+cleMap
+
+# IL - 1480
+# IN - 2850
+# IA - 3570
+# KS - 5182
+# 
+
+
+# states = map_data('state')
+# mdw_states = subset(states, region %in% c("ohio", "indiana", "illinois", "iowa", 
+#                                           "minnesota", "missouri", "kansas", "nebraska",
+#                                           "south dakota"))
+# mdw_base = ggplot(data = mdw_states, mapping = aes(x = mdw_states$long, y = mdw_states$lat, group=mdw_states$group)) + coord_fixed(1.3) + geom_polygon(color = 'black', fill = NA, size = 0.2)
+# mdw_base = mdw_base + geom_point(data = getStations, color = 'red', size = 0.1)
+# map1
+# mdw_base
