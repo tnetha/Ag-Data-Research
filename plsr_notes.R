@@ -2,6 +2,7 @@ install.packages('pls')
 library(pls)
 data(yarn)
 data("gasoline")
+?
 View(yarn)
 View(gasoline)
 class(yarn$NIR)

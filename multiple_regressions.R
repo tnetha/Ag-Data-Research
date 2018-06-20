@@ -20,7 +20,7 @@ regression_finder <- function(date_row, yield_df) {
   end_date <- as.Date(as.character(date_row[[1]]), '%m-%d') + 7
   yield_df$month_day <- as.Date(format(yield_df$date, '%m-%d'), '%m-%d')
   regress_df <- yield_df[(yield_df$month_day >= start_date & yield_df$month_day <= end_date),] %>% dplyr::group_by(year, County) %>% dplyr::summarise(rain_sum = sum(Precip), yield = mean(yields))
-  yield_regress <- lm(yield ~ rain_sum, regress_df)
+  yield_regress <- lm(yield ~ rain_sum + year, regress_df)
   regress_summary <- summary(yield_regress)
   regress_vec <- data.frame(start_date=format(start_date, '%m-%d'), end_date=format(end_date, '%m-%d'), r_squared=regress_summary$r.squared)
   regress_vec
@@ -28,9 +28,8 @@ regression_finder <- function(date_row, yield_df) {
 
 IN_r2_df <- lapply(dates_df$start, regression_finder, summer_INdf)
 
-do.call(rbind, IN_r2_df)
-
-write.csv(IN_r2_df, '/scratch/mentors/dbuckmas/', row.names = F)
+IN_r2_df <- do.call(rbind, IN_r2_df)
+max(IN_r2_df$r_squared)
 
 
 
