@@ -38,7 +38,7 @@ midwest_counties$V3 <- sprintf('%03d',midwest_counties$V3)
 # combine the state and county fips codes
 fips_code <- paste(midwest_counties$V2,midwest_counties$V3,sep = '')
 fips_code = as.numeric(as.character(fips_code))
-fips_code <- fips_code[!(fips_code == 17087 | fips_code == 46113)]
+fips_code <- fips_code[!(fips_code == 17087 | fips_code == 46113 | fips_code == 29019)]
 
 finding_averages <- function(fips) {
   library(jsonlite)
@@ -61,3 +61,20 @@ fips_code <- fips_code[!(fips_code == 17087 | fips_code == 46113 | fips_code == 
 >>>>>>> 4f9b1cc679fac65847b9fa25a37ba4b4d563eb44
 
 sapply(fips_code, finding_averages)
+
+
+finding_averages_avgt <- function(fips) {
+  library(jsonlite)
+  json_init <- fromJSON(paste('/scratch/mentors/dbuckmas/avgt_files/',fips,'.json',sep = ''))
+  json_mat <- matrix(NA,nrow = 16801,ncol = length(json_init$data$data))
+  for (i in 1:length(json_init$data$data)) {
+    json_mat[,i] <- as.numeric(as.character(json_init$data$data[[i]])) 
+  }
+  json_mat[json_mat == 'M'] <- NA
+  json_mat[json_mat == 'T'] <- .005
+  json_mean <- rowMeans(json_mat, na.rm = T)
+  write.csv(json_mean, paste('/scratch/mentors/dbuckmas/avgt_means/',fips,'.csv',sep = ''))
+}
+
+
+sapply(fips_code, finding_averages_avgt)

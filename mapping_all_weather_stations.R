@@ -1,4 +1,5 @@
-
+library(ggthemes)
+library(ggmap)
 get_loc_df <- function(fips) {
   library(jsonlite)
   json_file = paste('/scratch/mentors/dbuckmas/json_files/',fips,'.json',sep = '')
@@ -39,3 +40,34 @@ fips_code <- fips_code[!(fips_code == 17087 | fips_code == 46113 | fips_code == 
 
 getStations = sapply(fips_code, get_loc_df, simplify = F)
 
+getStations[[1]]
+
+getStations = do.call(rbind, getStations)
+
+# IL - 1480
+# IN - 2886
+# IA - 3579
+# KS - 5182
+# MN - 6073
+# MO - 7172
+# NE - 9077
+# OH - 9788
+# SD - 10615
+
+states = map_data('state')
+counties = map_data('county')
+counties_mdw = subset(counties, region %in% c("ohio", "indiana", "illinois", "iowa", 
+                                              "minnesota", "missouri", "kansas", "nebraska",
+                                              "south dakota"))
+mdw_states = subset(states, region %in% c("ohio", "indiana", "illinois", "iowa", 
+                                           "minnesota", "missouri", "kansas", "nebraska",
+                                           "south dakota"))
+getStations$state = c(rep('IL', times = 1480), rep('IN', times = 1406), rep('IA', times = 693), rep('KS', times = 1603), rep('MN', times = 891), rep
+                       ('MO', times = 1099), rep('NE', times = 1905), rep('OH', times = 711), rep('SD', times = 827))
+a = scale_colour_discrete(h = c(120, 300))
+mdw_base = ggplot() + coord_fixed(1.3) + geom_point(data = getStations, aes(x=lon, y=lat, color = state), size = 0.1) + geom_polygon(data=counties_mdw, mapping = aes(x = long, y = lat, group = group),color = 'black', fill = NA, size = 0.1) + 
+  geom_polygon(data = mdw_states, mapping = aes(x = mdw_states$long, y = mdw_states$lat, group=mdw_states$group),color = 'black', fill = NA, size = 0.7) + a + 
+  xlab('Longitude') + ylab('Latitude') + theme_light()
+mdw_base
+ 
+ 

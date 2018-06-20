@@ -5,15 +5,15 @@ IN_fips <- pull_state_codes('IN')
 IN_fips_name <- paste('V', IN_fips,sep = '')
 
 IN_df <- cbind(date = pcpn_df$date, pcpn_df[,IN_fips_name])
-View(IN_df)
-IN_df$date <- as.factor(format(IN_df$date,'%Y'))
+#IN_df$date <- as.factor(format(IN_df$date,'%Y'))
 
 tall_IN_df <- IN_df %>% gather(County, Value, -date)
 
-IN_sums <- tall_IN_df %>% group_by(date, County) %>% summarise(sum = sum(Value, na.rm =T))
-View(IN_sums)
+colnames(tall_IN_df)[4] <- 'Precip'
+#IN_sums <- tall_IN_df %>% group_by(date, County) %>% summarise(sum = sum(Value, na.rm =T))
+#View(IN_sums)
 
-IN_sums$County <- as.numeric(gsub('V([0-9]+)', '\\1', IN_sums$County ,perl = T))
+tall_IN_df$County <- as.numeric(gsub('V([0-9]+)', '\\1', tall_IN_df$County ,perl = T))
 
 # import corn yields
 field_corn <- subset(corn, COMMODITY_DESC == 'CORN')
@@ -30,7 +30,11 @@ yields <- yields[yields$YEAR >= 1970 & yields$YEAR <= 2015,]
 yields$COUNTY_CODE <- sprintf('%03d', as.numeric(as.character(yields$COUNTY_CODE)))
 yields$fips <- paste(yields$STATE_FIPS_CODE,yields$COUNTY_CODE, sep = '')
 
-yields_df <- data.frame(date = yields$YEAR, County = yields$fips, value = yields$VALUE)
-combined_IN_df <- merge(IN_sums, yields_df, by = c('date', 'County'), all.x = T)
-class(combined_IN_df$value)
-combined_IN_df$value <- as.numeric(as.character(combined_IN_df$value))
+yields_df <- data.frame(year = yields$YEAR, County = yields$fips, yields = yields$VALUE)
+
+tall_IN_df <- cbind(year = format(tall_IN_df$date, '%Y'), tall_IN_df)
+combined_IN_df <- merge(tall_IN_df, yields_df, by = c('year', 'County'), all.x = T)
+combined_IN_df$Precip <- as.numeric(as.character(combined_IN_df$Precip))
+
+
+write.csv(combined_IN_df, '/scratch/mentors/dbuckmas/IN_corn_rain_df.csv')
