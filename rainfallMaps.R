@@ -95,3 +95,47 @@ drawRainMap = function(date) {
 # draw a map of whatever day between 1970-01-01 and 2015-12-31
 drawRainMap('2000-04-12')
 
+gddDF = read.csv('/scratch/mentors/dbuckmas/gdd32_means/17001.csv')
+gddDF$date = seq(as.Date('1970-01-01'), as.Date('2015-12-31'), by = 'days')
+gddDF = gddDF[,c(2:3)]
+names(gddDF) = c('gdd', 'date')
+gddDF$year = format(gddDF$date, '%Y')
+
+s = c()
+t = c()
+
+getSum = function(year, fips, file) {
+  for (i in 1:length(file$gdd[file$year == year])) {
+    a = sum(file$gdd[file$year == year][1:i], na.rm = T)
+    s = rbind(s, a)
+  }
+  s
+}
+
+getTotal = function(fips) {
+  r = read.csv(paste('/scratch/mentors/dbuckmas/gdd32_means/',fips,'.csv', sep = ''), header = T, sep = ',')
+  r$date = seq(as.Date('1970-01-01'), as.Date('2015-12-31'), by = 'days')
+  r = r[,c(2:3)]
+  names(r) = c('gdd', 'date')
+  r$year = format(r$date, '%Y')
+  a = unlist(sapply(1970:2015, getSum, fips, r, simplify = F))
+  r = cbind(r, a)
+  r = as.data.frame(r)
+  write.csv(r, paste('/scratch/mentors/dbuckmas/gdd32_means_cummulative/',fips,'.csv', sep = ''))
+}
+
+sapply(fips_code, getTotal, simplify = F)
+
+t = read.csv(paste('/scratch/mentors/dbuckmas/gdd32_means/',17003,'.csv', sep = ''), header = T, sep = ',')
+t$date = seq(as.Date('1970-01-01'), as.Date('2015-12-31'), by = 'days')
+t = t[,c(2:3)]
+names(t) = c('gdd', 'date')
+t$year = format(t$date, '%Y')
+a = unlist(sapply(1970:2015, getSum, fips, t, simplify = F))
+t = cbind(t, a)
+write.csv(t, paste('/scratch/mentors/dbuckmas/gdd32_means_cummulative/',17003,'.csv', sep = ''))
+
+sum(gddDF$gdd[gddDF$year == 1971][1:nrow(gddDF)], na.rm = T)
+table(is.na(gddDF$gdd))
+r = gddDF$gdd[gddDF$year == 1971]
+
