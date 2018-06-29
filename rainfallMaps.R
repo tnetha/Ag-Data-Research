@@ -1,33 +1,49 @@
 library(jsonlite)
 library(ggplot2)
 library(plyr)
-# pulling fips codes from the Census Bureau
+library(ggmap)
+# pulling fips codes from the Census Bureau, creating a df of states, counties, and fips codes
 counties1 <- read.table('https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt',header = F, sep = ',', 
                         fill = T, stringsAsFactors = F, quote = '')
 
+counties1$V4 <- tolower(sub('([A-Za-z]+) County', '\\1', counties1$V4, perl = T))
+names(counties1) = c('state.abb', 'sCode', 'cCode', 'name', 'not sure')
+states1 = data.frame(state.abb, tolower(state.name))
+counties1 = join(counties1, states1, by = 'state.abb', type = 'left', match = 'all')
+
 # pull out just the midwest ones
-midwest_counties <- counties1[counties1$V1 == 'OH' | counties1$V1 == 'IN' | counties1$V1 == 'IL'
-                              | counties1$V1 == 'IA' | counties1$V1 == 'MO' | counties1$V1 == 'KS' |
-                                counties1$V1 == 'NE' | counties1$V1 == 'SD' | counties1$V1 == 'MN',]
+midwest_counties <- counties1[counties1$state.abb == 'OH' | counties1$state.abb == 'IN' | counties1$state.abb == 'IL'
+                              | counties1$state.abb == 'IA' | counties1$state.abb == 'MO' | counties1$state.abb == 'KS' |
+                                counties1$state.abb == 'NE' | counties1$state.abb == 'SD' | counties1$state.abb == 'MN',]
 
 # keep the 0s that R wants to delete
-midwest_counties$V2 <- sprintf('%02d',midwest_counties$V2)
-midwest_counties$V3 <- sprintf('%03d',midwest_counties$V3)
+midwest_counties$sCode <- sprintf('%02d',midwest_counties$sCode)
+midwest_counties$cCode <- sprintf('%03d',midwest_counties$cCode)
+midwest_counties$fips_code <- paste(midwest_counties$sCode,midwest_counties$cCode,sep = '')
+midwest_counties$statecounty = paste(midwest_counties$tolower.state.name.,',',midwest_counties$name, sep = '')
 
-# combine the state and county fips codes
-fips_code <- paste(midwest_counties$V2,midwest_counties$V3,sep = '')
-fips_code = as.numeric(as.character(fips_code))
+# making a df with lat and lons
+counties = map_data('county')
+counties$statecounty = paste(counties$region, counties$subregion, sep = ',')
 
+# just the midwest ones
+midwestCounties = counties[counties$region %in% c("ohio", "indiana", "illinois", "iowa", "missouri", "kansas", "nebraska", "south dakota", "minnesota"),]
+
+# match up the county names
+midwest_counties$statecounty = unique(midwestCounties$statecounty)
+
+# list of fips codes to run function on - takes out missing data ones
+fips_code = midwest_counties$fips_code
 fips_code <- fips_code[!fips_code %in% c(17087, 46113, 29019)]
 
+# making skeleton for df that will contain data for one day
 oneDayData = data.frame(fips_code)
 oneDayData$avgt = rep(NA, times = length(oneDayData$fips_code))
 
-
-# this currently has the maxt files, but you can easily change it by just changing what directory you pull from
-getDay = function(date1) {
+# this currently has the maxt files, but you can easily change it to pcpn or avgt by just changing what directory you pull from
+getDay = function(date1, type) {
   for (fips in fips_code) {
-    s = read.csv(paste('/scratch/mentors/dbuckmas/pcpn_means/',fips,'.csv', sep=''), header = T, sep = ',')
+    s = read.csv(paste('/scratch/mentors/dbuckmas/',type,'/',fips,'.csv', sep=''), header = T, sep = ',')
     dates = seq(as.Date('1970-01-01'), as.Date('2015-12-31'), by = 'days')
     s = cbind(dates, s)
     oneDayData$avgt[oneDayData$fips_code == fips] = s$x[s$dates == as.Date(date1)]
@@ -35,67 +51,91 @@ getDay = function(date1) {
   oneDayData
 }
 
+# pulling together the state, county, fips, lat, and lon
+allData = join(midwest_counties, midwestCounties, by = 'statecounty', type = 'right', match = 'all')
+
+# pulling in state data for state borders for later
 states = map_data('state')
 midwestStates = states[states$region %in% c("ohio", "indiana", "illinois", "iowa", "missouri", "kansas", "nebraska", "south dakota", "minnesota"),]
 
-counties = map_data('county')
-counties$statecounty = paste(counties$region, counties$subregion, sep = ',')
-
-# just the midwest ones
-midwestCounties = counties[counties$region %in% c("ohio", "indiana", "illinois", "iowa", "missouri", "kansas", "nebraska", "south dakota", "minnesota"),]
-
-getYields = function(file_name) {
-  crop = read.delim(file_name, header=T, sep ="\t")
-  crop = subset(crop, SOURCE_DESC == 'SURVEY')
-  crop = subset(crop, AGG_LEVEL_DESC == 'COUNTY')
-  crop = subset(crop, SHORT_DESC == 'WHEAT - YIELD, MEASURED IN BU / ACRE') ## change this to your crop's yield column name
-  crop = crop[, c(15, 21, 17, 22, 31, 38)]
-  crop$STATE_FIPS_CODE = sprintf('%02d',crop$STATE_FIPS_CODE)
-  crop$COUNTY_CODE = sprintf('%03d',crop$COUNTY_CODE)
-  cropCut = subset(crop, STATE_NAME %in% c("OHIO","INDIANA","ILLINOIS","IOWA","MISSOURI",
-                                           "NEBRASKA","KANSAS","SOUTH DAKOTA","MINNESOTA"))
-  cropCut$statecounty = data.frame(paste(cropCut$STATE_NAME, cropCut$COUNTY_NAME, sep = ","))
-  cropCut$statecounty = sapply(cropCut$statecounty, tolower)
-  cropCut = subset(cropCut, YEAR >= 1980 & YEAR <= 2010)
-  crop80 = subset(cropCut, YEAR >= 1981 & YEAR <= 1990)
-  crop90 = subset(cropCut, YEAR >= 1991 & YEAR <= 2000)
-  crop00 = subset(cropCut, YEAR >= 2001 & YEAR <= 2010)
-  return(cropCut)
-}
-
-wheat = getYields("/scratch/mentors/dbuckmas/head.txt")
-wheat$FIPScode = paste(wheat$STATE_FIPS_CODE, wheat$COUNTY_CODE, sep = '')
-wheat$STATE_NAME = sapply(wheat$STATE_NAME, tolower)
-wheat$COUNTY_NAME = sapply(wheat$COUNTY_NAME, tolower)
-allData = join(wheat, midwestCounties, by = 'statecounty', type = 'right', match = 'all')
-
-# tempData = merge(oneDayData, allData, by.x = 'fips_code', by.y = 'FIPScode')
-# tempData = tempData[,c(1,2,3,10:15)]
-# tempData = tempData[order(tempData$order),]
-
-ggplot(data = tempData, mapping = aes(x = long, y = lat, group = group)) + geom_polygon(aes(fill = tempData$avgt), size = 0.2) + 
-  coord_fixed(1.3) + scale_fill_gradientn(na.value = 'gray100', limits = c(-10,100), colors = c('plum1','purple','blue','deepskyblue','light blue','green','green3','yellow','orange','darkorange','red','red3'), breaks = c(-10,0,10,20,30,40,50,60,70,80,90,100))
-range(tempData$avgt, na.rm = T)
+# cities to put on map
+names = c('Chicago, IL', 'St. Louis, MO', 'Minneapolis, MN', 'Indianapolis, IN', 'Lincoln, NE', 'Wichita, KS')
+cities = cbind(names, geocode(as.character(names)))
+names(cities) = c('names', 'long', 'lat')
 
 # this one i use for temperature maps
-drawMap = function(date) {
-  oneDay = getDay(date)
-  tempData = merge(oneDay, allData, by.x = 'fips_code', by.y = 'FIPScode')
+drawTempMap = function(date) {
+  oneDay = getDay(date,'maxt_means')
+  tempData = join(oneDay, allData, by = 'fips_code', type = 'left', match = 'all')
   tempData = tempData[,c(1,2,3,10:15)]
   tempData = tempData[order(tempData$order),]
-  ggplot(data = tempData, mapping = aes(x = long, y = lat, group = group)) + geom_polygon(aes(fill = tempData$avgt), size = 0.2) + 
-    coord_fixed(1.3) + scale_fill_gradientn(na.value = 'blue', limits = c(-10,110), colors = c('plum1','purple','blue','deepskyblue','light blue','green','green3','yellow','orange','orangered','red','red3'),
-                                            breaks = c(-10,0,10,20,30,40,50,60,70,80,90,100))
+  ggplot(data = tempData, aes(x = long, y = lat)) + geom_polygon(aes(fill = tempData$avgt,group = group), size = 0.2) + 
+    coord_fixed(1.3) + scale_fill_gradientn(na.value = 'lightgray', limits = c(-10,110), colors = c('plum1','purple','blue','deepskyblue','light blue','green','green3','yellow','orange','orangered','red','red3'),
+                                            breaks = c(-10,0,10,20,30,40,50,60,70,80,90,100,110)) + geom_polygon(data = midwestStates, aes(fill = tempData$avgt, x = long, y = lat, group = group), color = 'black', fill = NA, size = 0.2) + 
+    guides(fill = guide_colorbar(title = 'temp (F)', barwidth = 1, barheight = 15)) + geom_point(data = cities, color = 'black') + 
+    geom_text(data = cities, aes(label = paste("  ", as.character(names), sep=""),hjust = 0), color = "black", size = 3.5)
+  
 }
-drawMap('2007-08-12')
+# draw a map of whatever day between 1970-01-01 and 2015-12-31
+drawTempMap('2001-12-25')
 
 # this one i created specifically for rain becasue it has different scales
 drawRainMap = function(date) {
-  oneDay = getDay(date)
-  tempData = merge(oneDay, allData, by.x = 'fips_code', by.y = 'FIPScode')
+  oneDay = getDay(date, 'pcpn_means')
+  tempData = join(oneDay, allData, by = 'fips_code', type = 'left', match = 'all')
   tempData = tempData[,c(1,2,3,10:15)]
   tempData = tempData[order(tempData$order),]
-  ggplot(data = tempData, mapping = aes(x = long, y = lat, group = group)) + geom_polygon(aes(fill = tempData$avgt), size = 0.2) + 
-    coord_fixed(1.3) + scale_fill_gradientn(na.value = 'gray100', limits = c(0,2), colors = c('white','lightblue','blue'))
+  ggplot(data = tempData, mapping = aes(x = long, y = lat)) + geom_polygon(aes(fill = tempData$avgt, group = group), size = 0.2) + 
+    coord_fixed(1.3) + scale_fill_gradientn(na.value = 'gray100', limits = c(0,2), colors = c('white','lightblue','deepskyblue','blue')) + 
+    geom_polygon(data = midwestStates, aes(fill = tempData$avgt, x = long, y = lat, group = group), color = 'black', fill = NA, size = 0.2) + 
+    guides(fill = guide_colorbar(title = 'rain (in)', barwidth = 1, barheight = 15)) + geom_point(data = cities, color = 'black') + 
+    geom_text(data = cities, aes(label = paste("  ", as.character(names), sep=""),hjust = 0), color = "black", size = 3.5)
 }
+
+# draw a map of whatever day between 1970-01-01 and 2015-12-31
 drawRainMap('2000-04-12')
+
+gddDF = read.csv('/scratch/mentors/dbuckmas/gdd32_means/17001.csv')
+gddDF$date = seq(as.Date('1970-01-01'), as.Date('2015-12-31'), by = 'days')
+gddDF = gddDF[,c(2:3)]
+names(gddDF) = c('gdd', 'date')
+gddDF$year = format(gddDF$date, '%Y')
+
+s = c()
+t = c()
+
+getSum = function(year, fips, file) {
+  for (i in 1:length(file$gdd[file$year == year])) {
+    a = sum(file$gdd[file$year == year][1:i], na.rm = T)
+    s = rbind(s, a)
+  }
+  s
+}
+
+getTotal = function(fips) {
+  r = read.csv(paste('/scratch/mentors/dbuckmas/gdd32_means/',fips,'.csv', sep = ''), header = T, sep = ',')
+  r$date = seq(as.Date('1970-01-01'), as.Date('2015-12-31'), by = 'days')
+  r = r[,c(2:3)]
+  names(r) = c('gdd', 'date')
+  r$year = format(r$date, '%Y')
+  a = unlist(sapply(1970:2015, getSum, fips, r, simplify = F))
+  r = cbind(r, a)
+  r = as.data.frame(r)
+  write.csv(r, paste('/scratch/mentors/dbuckmas/gdd32_means_cummulative/',fips,'.csv', sep = ''))
+}
+
+sapply(fips_code, getTotal, simplify = F)
+
+t = read.csv(paste('/scratch/mentors/dbuckmas/gdd32_means/',17003,'.csv', sep = ''), header = T, sep = ',')
+t$date = seq(as.Date('1970-01-01'), as.Date('2015-12-31'), by = 'days')
+t = t[,c(2:3)]
+names(t) = c('gdd', 'date')
+t$year = format(t$date, '%Y')
+a = unlist(sapply(1970:2015, getSum, fips, t, simplify = F))
+t = cbind(t, a)
+write.csv(t, paste('/scratch/mentors/dbuckmas/gdd32_means_cummulative/',17003,'.csv', sep = ''))
+
+sum(gddDF$gdd[gddDF$year == 1971][1:nrow(gddDF)], na.rm = T)
+table(is.na(gddDF$gdd))
+r = gddDF$gdd[gddDF$year == 1971]
+
