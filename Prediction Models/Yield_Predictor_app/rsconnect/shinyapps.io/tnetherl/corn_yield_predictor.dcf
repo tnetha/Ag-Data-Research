@@ -1,0 +1,10 @@
+name: corn_yield_predictor
+title:
+username:
+account: tnetherl
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 364649
+bundleId: 1443149
+url: https://tnetherl.shinyapps.io/corn_yield_predictor/
+when: 1529675638.9625

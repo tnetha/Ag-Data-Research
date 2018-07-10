@@ -62,6 +62,26 @@ fips_code <- fips_code[!(fips_code == 17087 | fips_code == 46113 | fips_code == 
 
 sapply(fips_code, finding_averages)
 
+# making column for two week periods of precip
+s = c()
+getSumPcpn = function(file) {
+  for (i in 1:length(file$pcpn)) {
+    a = sum(file$pcpn[i:(i+13)], na.rm = T)
+    s = rbind(s,a)
+  }
+  s
+}
+writeTwoWeekTotals = function(fips) {
+  r = read.csv(paste('/scratch/mentors/dbuckmas/pcpn_means/',fips,'.csv', sep = ''), header = T, sep = ',')
+  r$date = seq(as.Date('1970-01-01'), as.Date('2015-12-31'), by = 'days')
+  r = r[,c(2:3)]
+  names(r) = c('pcpn', 'date')
+  p = getSumPcpn(r)
+  r = cbind(r, p)
+  write.csv(r, paste('/scratch/mentors/dbuckmas/pcpn_means/',fips,'.csv', sep = ''))
+}
+
+sapply(fips_code, writeTwoWeekTotals)
 
 finding_averages_avgt <- function(fips) {
   library(jsonlite)
@@ -78,3 +98,32 @@ finding_averages_avgt <- function(fips) {
 
 
 sapply(fips_code, finding_averages_avgt)
+
+finding_averages_maxt <- function(fips) {
+  library(jsonlite)
+  json_init <- fromJSON(paste('/scratch/mentors/dbuckmas/maxt_files/',fips,'.json',sep = ''))
+  json_mat <- matrix(NA,nrow = 16801,ncol = length(json_init$data$data))
+  for (i in 1:length(json_init$data$data)) {
+    json_mat[,i] <- as.numeric(as.character(json_init$data$data[[i]])) 
+  }
+  json_mat[json_mat == 'M'] <- NA
+  json_mat[json_mat == 'T'] <- .005
+  json_mean <- rowMeans(json_mat, na.rm = T)
+  write.csv(json_mean, paste('/scratch/mentors/dbuckmas/maxt_means/',fips,'.csv',sep = ''))
+}
+
+sapply(fips_code, finding_averages_maxt)
+
+finding_averages_gdd32 <- function(fips) {
+  library(jsonlite)
+  json_init <- fromJSON(paste('/scratch/mentors/dbuckmas/gdd32_files/',fips,'.json',sep = ''))
+  json_mat <- matrix(NA,nrow = 16801,ncol = length(json_init$data$data))
+  for (i in 1:length(json_init$data$data)) {
+    json_mat[,i] <- as.numeric(as.character(json_init$data$data[[i]])) 
+  }
+  json_mat[json_mat == 'M'] <- NA
+  json_mat[json_mat == 'T'] <- .005
+  json_mean <- rowMeans(json_mat, na.rm = T)
+  write.csv(json_mean, paste('/scratch/mentors/dbuckmas/gdd32_means/',fips,'.csv',sep = ''))
+}
+sapply(fips_code, finding_averages_gdd32)
