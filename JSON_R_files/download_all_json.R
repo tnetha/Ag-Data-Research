@@ -1,4 +1,6 @@
 #library(tidyverse)
+library(NOAAcounty)
+state_fips('IN')
 counties <- read.table('https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt',header = F, sep = ',', 
                        fill = T, stringsAsFactors = F, quote = '')
 
