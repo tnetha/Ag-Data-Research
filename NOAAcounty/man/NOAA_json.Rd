@@ -7,6 +7,7 @@ Download weather data from NOAA and import it as a dataframe
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
+This is a function to download large amounts of meteorological data on a county level from the National Oceanic Atmospheric Administration and import as a easily manipulated R data frame.
 }
 \usage{
 NOAA_json(fips_codes, Start_date, End_date, Weather_element)
