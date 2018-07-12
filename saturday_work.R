@@ -6,8 +6,8 @@ library(ggmap)
 # need to run Getting Closest Stations.R first before running this
 
 # function get the lat/lons of stations in a county with a specific fips code aka json file
-get_loc_df <- function(json_file) {
-  library(jsonlite)
+get_loc_df <- function(fips) {
+  json_file = paste('/scratch/mentors/dbuckmas/json_files/',fips,'.json',sep = '')
   json_list <- fromJSON(json_file)
   loc_list <- json_list$data$meta$ll
   station_lat <- 0
@@ -28,7 +28,7 @@ get_loc_df <- function(json_file) {
   loc_df
 }
 
-ll = get_loc_df(paste('/scratch/mentors/dbuckmas/json_files/',18157,'.json',sep = ''))
+ll = sapply(oh_fips[1:30], get_loc_df)
 
 cle_center = as.numeric(geocode("Purdue University"))
 cleMap = ggmap(get_googlemap(center = cle_center, zoom = 13, maptype = 'roadmap'))
