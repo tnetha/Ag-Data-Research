@@ -16,3 +16,4 @@ pull_state_codes <- function(state_abb) {
   fips_code
 }
 
+oh_fips = pull_state_codes('OH')
